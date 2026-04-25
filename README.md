@@ -71,9 +71,9 @@ dependencies {
 ### 1. Define a contract
 
 ```kotlin
-import yegor.cheprasov.simplemvi.core.EffectUi
-import yegor.cheprasov.simplemvi.core.IntentUi
-import yegor.cheprasov.simplemvi.core.StateUi
+import io.github.v1rusdev.simplemvi.core.EffectUi
+import io.github.v1rusdev.simplemvi.core.IntentUi
+import io.github.v1rusdev.simplemvi.core.StateUi
 
 sealed interface ProfileState : StateUi {
     data object Loading : ProfileState
@@ -97,7 +97,7 @@ sealed interface ProfileEffect : EffectUi {
 ### 2. Create a ViewModel
 
 ```kotlin
-import yegor.cheprasov.simplemvi.compose.MviViewModel
+import io.github.v1rusdev.simplemvi.compose.MviViewModel
 
 class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
     initialState = ProfileState.Loading,
@@ -127,7 +127,7 @@ class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect
 ```kotlin
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import yegor.cheprasov.simplemvi.compose.CollectEffectsUiEvent
+import io.github.v1rusdev.simplemvi.compose.CollectEffectsUiEvent
 
 @Composable
 fun ProfileScreen(
@@ -159,7 +159,7 @@ fun ProfileScreen(
 You can also use the core module without a ViewModel.
 
 ```kotlin
-import yegor.cheprasov.simplemvi.core.mvi
+import io.github.v1rusdev.simplemvi.core.mvi
 
 val store = mvi<ProfileState, ProfileIntent, ProfileEffect>(
     initialState = ProfileState.Loading,
@@ -176,7 +176,7 @@ The Android module includes a small `SavedStateHandle.getOrPut` helper for route
 
 ```kotlin
 import androidx.lifecycle.SavedStateHandle
-import yegor.cheprasov.simplemvi.compose.android.getOrPut
+import io.github.v1rusdev.simplemvi.compose.android.getOrPut
 
 val profileId = savedStateHandle.getOrPut("profile_id") {
     "me"

@@ -1,4 +1,4 @@
-package yegor.cheprasov.simplemvi.core
+package io.github.v1rusdev.simplemvi.core
 
 /**
  * Marker interface for user actions or screen events handled by a SimpleMVI store.

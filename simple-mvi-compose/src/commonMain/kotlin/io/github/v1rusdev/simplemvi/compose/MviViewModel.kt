@@ -1,12 +1,12 @@
-package yegor.cheprasov.simplemvi.compose
+package io.github.v1rusdev.simplemvi.compose
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.channels.BufferOverflow
-import yegor.cheprasov.simplemvi.core.EffectUi
-import yegor.cheprasov.simplemvi.core.IntentUi
-import yegor.cheprasov.simplemvi.core.SimpleMVI
-import yegor.cheprasov.simplemvi.core.StateUi
-import yegor.cheprasov.simplemvi.core.mvi
+import io.github.v1rusdev.simplemvi.core.EffectUi
+import io.github.v1rusdev.simplemvi.core.IntentUi
+import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.StateUi
+import io.github.v1rusdev.simplemvi.core.mvi
 
 /**
  * Base [ViewModel] that delegates SimpleMVI state and effect handling.

@@ -1,4 +1,4 @@
-package yegor.cheprasov.simplemvi.compose
+package io.github.v1rusdev.simplemvi.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,7 +8,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import yegor.cheprasov.simplemvi.core.EffectUi
+import io.github.v1rusdev.simplemvi.core.EffectUi
 
 /**
  * Collects one-time UI effects in a lifecycle-aware Compose scope.

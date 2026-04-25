@@ -1,4 +1,4 @@
-package yegor.cheprasov.simplemvi.compose.android
+package io.github.v1rusdev.simplemvi.compose.android
 
 import androidx.lifecycle.SavedStateHandle
 

@@ -1,4 +1,4 @@
-package yegor.cheprasov.simplemvi.core
+package io.github.v1rusdev.simplemvi.core
 
 /**
  * Marker interface for immutable UI state used by a SimpleMVI store.

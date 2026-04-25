@@ -1,4 +1,4 @@
-package yegor.cheprasov.simplemvi.core
+package io.github.v1rusdev.simplemvi.core
 
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow

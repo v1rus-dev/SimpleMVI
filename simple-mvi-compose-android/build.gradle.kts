@@ -11,7 +11,7 @@ group = "io.github.v1rus-dev"
 version = "0.1.0"
 
 android {
-    namespace = "yegor.cheprasov.simplemvi.compose.android"
+    namespace = "io.github.v1rusdev.simplemvi.compose.android"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

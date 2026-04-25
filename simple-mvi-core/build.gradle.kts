@@ -12,7 +12,7 @@ version = "0.1.0"
 
 kotlin {
     androidLibrary {
-        namespace = "yegor.cheprasov.simplemvi.core"
+        namespace = "io.github.v1rusdev.simplemvi.core"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
