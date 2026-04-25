@@ -15,7 +15,7 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 
 ## Quickstart
 
-- Latest project version: `0.1.0`
+- Latest version: see the Maven Central badge above.
 - Group ID: `io.github.v1rus-dev`
 - Core module: `simple-mvi-core`
 - Compose Multiplatform module: `simple-mvi-compose`
@@ -26,7 +26,7 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 
 ```toml
 [versions]
-simplemvi = "0.1.0"
+simplemvi = "<latest-version>"
 
 [libraries]
 simplemvi-core = { module = "io.github.v1rus-dev:simple-mvi-core", version.ref = "simplemvi" }
@@ -46,13 +46,13 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.v1rus-dev:simple-mvi-core:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-core:<latest-version>")
 
     // Compose Multiplatform helpers
-    implementation("io.github.v1rus-dev:simple-mvi-compose:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-compose:<latest-version>")
 
     // Android-only helpers, including SavedStateHandle support
-    implementation("io.github.v1rus-dev:simple-mvi-android:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-android:<latest-version>")
 }
 ```
 
