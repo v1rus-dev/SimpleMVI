@@ -154,6 +154,31 @@ fun ProfileScreen(
 }
 ```
 
+## ViewModel Delegation
+
+If you already have a base ViewModel, use the core store as a delegate.
+
+```kotlin
+import androidx.lifecycle.ViewModel
+import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.mvi
+
+class ProfileViewModel : ViewModel(),
+    SimpleMVI<ProfileState, ProfileIntent, ProfileEffect> by mvi(
+        initialState = ProfileState.Loading,
+    ) {
+
+    override fun onIntent(intent: ProfileIntent) {
+        when (intent) {
+            ProfileIntent.RefreshClicked -> updateState {
+                ProfileState.Content(name = "Jon Doe")
+            }
+            ProfileIntent.BackClicked -> tryEmitEffect(ProfileEffect.NavigateBack)
+        }
+    }
+}
+```
+
 ## Standalone Store
 
 You can also use the core module without a ViewModel.
@@ -166,7 +191,7 @@ val store = mvi<ProfileState, ProfileIntent, ProfileEffect>(
 )
 
 store.updateState {
-    ProfileState.Content(name = "Yegor")
+    ProfileState.Content(name = "Jon Doe")
 }
 ```
 

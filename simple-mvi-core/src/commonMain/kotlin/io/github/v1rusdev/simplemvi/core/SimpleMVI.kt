@@ -82,6 +82,14 @@ interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
  *     initialState = ProfileState.Loading,
  * )
  * ```
+ *
+ * You can also use it as a delegate inside your own class:
+ * ```
+ * class ProfileViewModel : ViewModel(),
+ *     SimpleMVI<ProfileState, ProfileIntent, ProfileEffect> by mvi(
+ *         initialState = ProfileState.Loading,
+ *     )
+ * ```
  */
 fun <State : StateUi, Intent : IntentUi, Effect : EffectUi> mvi(
     initialState: State,
