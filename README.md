@@ -1,97 +1,196 @@
 # SimpleMVI
 
-SimpleMVI is a Kotlin Multiplatform library for building small, explicit MVI-style state containers.
+[![CI](https://github.com/v1rus-dev/SimpleMVI/actions/workflows/gradle.yml/badge.svg)](https://github.com/v1rus-dev/SimpleMVI/actions/workflows/gradle.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/yegor.cheprasov.simplemvi/simple-mvi-core?label=Maven%20Central)](https://central.sonatype.com/search?q=g%3Ayegor.cheprasov.simplemvi)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3.21-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/compose-1.10.3-4285F4.svg)](https://www.jetbrains.com/compose-multiplatform/)
 
-The project is split into a small core module and optional Compose integrations, so the state-management layer can stay independent from UI framework code.
+![Android](https://img.shields.io/badge/android-3DDC84?style=flat&logo=android&logoColor=white)
+![iOS](https://img.shields.io/badge/ios-000000?style=flat&logo=apple&logoColor=white)
 
-## Modules
+SimpleMVI is a small Kotlin Multiplatform library for building explicit MVI-style state containers.
 
-| Module | Artifact | Description |
-| --- | --- | --- |
-| `simple-mvi-core` | `yegor.cheprasov.simplemvi:simple-mvi-core` | Core MVI primitives for shared Kotlin code. |
-| `simple-mvi-compose` | `yegor.cheprasov.simplemvi:simple-mvi-compose` | Compose Multiplatform integration built on top of the core module. |
-| `simple-mvi-compose-android` | `yegor.cheprasov.simplemvi:simple-mvi-compose-android` | Android-specific Compose lifecycle and ViewModel integration. |
+It gives you a tiny set of contracts for **state**, **intent**, and **effect**, plus Compose helpers for lifecycle-aware effect collection and ViewModel integration.
 
-## Supported Targets
+## Quickstart
 
-The multiplatform modules are configured for:
+- Latest project version: `1.0.0`
+- Group ID: `yegor.cheprasov.simplemvi`
+- Core module: `simple-mvi-core`
+- Compose Multiplatform module: `simple-mvi-compose`
+- Android Compose module: `simple-mvi-compose-android`
 
-- Android
-- JVM
-- iOS x64
-- iOS arm64
-- iOS simulator arm64
-- Linux x64
+<details open>
+<summary>Version catalog</summary>
 
-## Installation
+```toml
+[versions]
+simplemvi = "1.0.0"
 
-Add Maven Central to your repositories:
+[libraries]
+simplemvi-core = { module = "yegor.cheprasov.simplemvi:simple-mvi-core", version.ref = "simplemvi" }
+simplemvi-compose = { module = "yegor.cheprasov.simplemvi:simple-mvi-compose", version.ref = "simplemvi" }
+simplemvi-compose-android = { module = "yegor.cheprasov.simplemvi:simple-mvi-compose-android", version.ref = "simplemvi" }
+```
+
+</details>
+
+<details>
+<summary>Gradle DSL</summary>
 
 ```kotlin
 repositories {
-    mavenCentral()
     google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation("yegor.cheprasov.simplemvi:simple-mvi-core:1.0.0")
+
+    // Compose Multiplatform helpers
+    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose:1.0.0")
+
+    // Android-only helpers, including SavedStateHandle support
+    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose-android:1.0.0")
 }
 ```
 
-Add the modules you need:
+</details>
+
+## Modules
+
+| Module | Target | Use it for |
+| --- | --- | --- |
+| `simple-mvi-core` | Android, iOS | MVI contracts, state holder, and effect flow. |
+| `simple-mvi-compose` | Android, iOS | Compose Multiplatform `MviViewModel` and effect collection. |
+| `simple-mvi-compose-android` | Android | Android lifecycle helpers and `SavedStateHandle` extension. |
+
+## Show Me The Code
+
+### 1. Define a contract
 
 ```kotlin
-dependencies {
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-core:<version>")
+import yegor.cheprasov.simplemvi.core.EffectUi
+import yegor.cheprasov.simplemvi.core.IntentUi
+import yegor.cheprasov.simplemvi.core.StateUi
+
+sealed interface ProfileState : StateUi {
+    data object Loading : ProfileState
+    data class Content(
+        val name: String,
+        val isRefreshing: Boolean = false,
+    ) : ProfileState
+}
+
+sealed interface ProfileIntent : IntentUi {
+    data object RefreshClicked : ProfileIntent
+    data object BackClicked : ProfileIntent
+}
+
+sealed interface ProfileEffect : EffectUi {
+    data object NavigateBack : ProfileEffect
+    data class ShowMessage(val text: String) : ProfileEffect
 }
 ```
 
-For Compose Multiplatform:
+### 2. Create a ViewModel
 
 ```kotlin
-dependencies {
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose:<version>")
+import yegor.cheprasov.simplemvi.compose.MviViewModel
+
+class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
+    initialState = ProfileState.Loading,
+) {
+    override fun onIntent(intent: ProfileIntent) {
+        when (intent) {
+            ProfileIntent.RefreshClicked -> refresh()
+            ProfileIntent.BackClicked -> sendEffect(ProfileEffect.NavigateBack)
+        }
+    }
+
+    private fun refresh() {
+        updateState {
+            when (this) {
+                ProfileState.Loading -> this
+                is ProfileState.Content -> copy(isRefreshing = true)
+            }
+        }
+
+        sendEffect(ProfileEffect.ShowMessage("Profile refresh started"))
+    }
 }
 ```
 
-For Android Compose integration:
+### 3. Collect state and effects in Compose
 
 ```kotlin
-dependencies {
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose-android:<version>")
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import yegor.cheprasov.simplemvi.compose.CollectEffectsUiEvent
+
+@Composable
+fun ProfileScreen(
+    viewModel: ProfileViewModel,
+    onBack: () -> Unit,
+) {
+    val state = viewModel.uiState.collectAsStateWithLifecycle()
+
+    CollectEffectsUiEvent(viewModel.uiEffects) { effect ->
+        when (effect) {
+            ProfileEffect.NavigateBack -> onBack()
+            is ProfileEffect.ShowMessage -> {
+                // Show a snackbar, toast, or dialog here.
+            }
+        }
+    }
+
+    ProfileContent(
+        state = state.value,
+        onRefreshClick = {
+            viewModel.onIntent(ProfileIntent.RefreshClicked)
+        },
+    )
 }
 ```
 
-Replace `<version>` with the published library version.
+## Standalone Store
 
-## Project Setup
+You can also use the core module without a ViewModel.
 
-The repository uses:
+```kotlin
+import yegor.cheprasov.simplemvi.core.mvi
 
-- Kotlin Multiplatform
-- Android Gradle Plugin
-- Compose Multiplatform
-- Compose Compiler Gradle plugin
-- Vanniktech Maven Publish
+val store = mvi<ProfileState, ProfileIntent, ProfileEffect>(
+    initialState = ProfileState.Loading,
+)
 
-The main version catalog is located at [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
-
-## Build Locally
-
-```bash
-./gradlew build
+store.updateState {
+    ProfileState.Content(name = "Yegor")
+}
 ```
 
-To run checks for a specific module:
+## Saved State
 
-```bash
-./gradlew :simple-mvi-core:check
-./gradlew :simple-mvi-compose:check
-./gradlew :simple-mvi-compose-android:check
+The Android module includes a small `SavedStateHandle.getOrPut` helper for route arguments and small saved values.
+
+```kotlin
+import androidx.lifecycle.SavedStateHandle
+import yegor.cheprasov.simplemvi.compose.android.getOrPut
+
+val profileId = savedStateHandle.getOrPut("profile_id") {
+    "me"
+}
 ```
 
-## Publishing
+## Design Goals
 
-The modules are configured with `com.vanniktech.maven.publish` and are intended to be published to Maven Central.
-
-Before publishing, make sure signing credentials and Maven Central credentials are configured in your local Gradle environment.
+- Keep state immutable and easy to inspect.
+- Route UI events through one `onIntent` entry point.
+- Keep one-time effects separate from state.
+- Stay lightweight enough for shared Kotlin code.
+- Add Compose helpers without forcing UI dependencies into the core module.
 
 ## License
 
-This project is licensed under the Apache License 2.0. See [`LICENSE`](LICENSE) for details.
+SimpleMVI is licensed under the [Apache License 2.0](LICENSE).

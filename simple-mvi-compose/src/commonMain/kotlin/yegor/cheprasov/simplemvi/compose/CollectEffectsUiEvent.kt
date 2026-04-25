@@ -10,6 +10,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import yegor.cheprasov.simplemvi.core.EffectUi
 
+/**
+ * Collects one-time UI effects in a lifecycle-aware Compose scope.
+ *
+ * Collection starts when [lifecycleOwner] reaches [minActiveState] and stops when it moves below it.
+ *
+ * Example:
+ * ```
+ * CollectEffectsUiEvent(viewModel.uiEffects) { effect ->
+ *     when (effect) {
+ *         is ProfileEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
+ *     }
+ * }
+ * ```
+ */
 @Composable
 fun <Effect : EffectUi> CollectEffectsUiEvent(
     effectsFlow: Flow<Effect>,

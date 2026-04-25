@@ -12,8 +12,6 @@ group = "yegor.cheprasov.simplemvi"
 version = "1.0.0"
 
 kotlin {
-    jvm()
-
     androidLibrary {
         namespace = "yegor.cheprasov.simplemvi.compose"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -67,8 +65,8 @@ mavenPublishing {
 
         licenses {
             license {
-                name = "MIT License"
-                url = "https://opensource.org/licenses/MIT"
+                name = "Apache License 2.0"
+                url = "https://opensource.org/licenses/Apache-2.0"
                 distribution = "repo"
             }
         }
