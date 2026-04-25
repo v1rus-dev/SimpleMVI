@@ -33,6 +33,7 @@ kotlin {
 dependencies {
     api(project(":simple-mvi-core"))
     api(project(":simple-mvi-compose"))
+    api(libs.androidx.lifecycle.viewmodel.savedstate)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
