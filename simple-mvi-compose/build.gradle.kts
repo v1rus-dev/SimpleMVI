@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.vanniktech.maven.publish)
 }
 
-group = "yegor.cheprasov.simplemvi"
+group = "io.github.v1rus-dev"
 version = "0.1.0"
 
 kotlin {
@@ -73,16 +73,16 @@ mavenPublishing {
 
         developers {
             developer {
-                id = "yegor-cheprasov"
+                id = "v1rus-dev"
                 name = "Yegor Cheprasov"
-                url = "https://github.com/yegor-cheprasov"
+                url = "https://github.com/v1rus-dev"
             }
         }
 
         scm {
             url = "https://github.com/v1rus-dev/SimpleMVI"
-            connection = "scm:git:git://github.com/yegor-cheprasov/simple-mvi.git"
-            developerConnection = "scm:git:ssh://git@github.com/yegor-cheprasov/simple-mvi.git"
+            connection = "scm:git:git://github.com/v1rus-dev/SimpleMVI.git"
+            developerConnection = "scm:git:ssh://git@github.com/v1rus-dev/SimpleMVI.git"
         }
     }
 }

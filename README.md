@@ -1,7 +1,7 @@
 # SimpleMVI
 
 [![CI](https://github.com/v1rus-dev/SimpleMVI/actions/workflows/gradle.yml/badge.svg)](https://github.com/v1rus-dev/SimpleMVI/actions/workflows/gradle.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/yegor.cheprasov.simplemvi/simple-mvi-core?label=Maven%20Central)](https://central.sonatype.com/search?q=g%3Ayegor.cheprasov.simplemvi)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.v1rus-dev/simple-mvi-core?label=Maven%20Central)](https://central.sonatype.com/search?q=g%3Aio.github.v1rus-dev)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.3.21-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/compose-1.10.3-4285F4.svg)](https://www.jetbrains.com/compose-multiplatform/)
@@ -16,7 +16,7 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 ## Quickstart
 
 - Latest project version: `0.1.0`
-- Group ID: `yegor.cheprasov.simplemvi`
+- Group ID: `io.github.v1rus-dev`
 - Core module: `simple-mvi-core`
 - Compose Multiplatform module: `simple-mvi-compose`
 - Android Compose module: `simple-mvi-compose-android`
@@ -29,9 +29,9 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 simplemvi = "0.1.0"
 
 [libraries]
-simplemvi-core = { module = "yegor.cheprasov.simplemvi:simple-mvi-core", version.ref = "simplemvi" }
-simplemvi-compose = { module = "yegor.cheprasov.simplemvi:simple-mvi-compose", version.ref = "simplemvi" }
-simplemvi-compose-android = { module = "yegor.cheprasov.simplemvi:simple-mvi-compose-android", version.ref = "simplemvi" }
+simplemvi-core = { module = "io.github.v1rus-dev:simple-mvi-core", version.ref = "simplemvi" }
+simplemvi-compose = { module = "io.github.v1rus-dev:simple-mvi-compose", version.ref = "simplemvi" }
+simplemvi-compose-android = { module = "io.github.v1rus-dev:simple-mvi-compose-android", version.ref = "simplemvi" }
 ```
 
 </details>
@@ -46,13 +46,13 @@ repositories {
 }
 
 dependencies {
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-core:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-core:0.1.0")
 
     // Compose Multiplatform helpers
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-compose:0.1.0")
 
     // Android-only helpers, including SavedStateHandle support
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose-android:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-compose-android:0.1.0")
 }
 ```
 
