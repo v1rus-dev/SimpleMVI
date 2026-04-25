@@ -45,12 +45,12 @@ mavenPublishing {
 
     coordinates(
         groupId = group.toString(),
-        artifactId = "simple-mvi-compose-android",
+        artifactId = "simple-mvi-android",
         version = version.toString()
     )
 
     pom {
-        name = "SimpleMVI Compose Android"
+        name = "SimpleMVI Android"
         description = "Android lifecycle and ViewModel integration for SimpleMVI"
         inceptionYear = "2026"
         url = "https://github.com/v1rus-dev/SimpleMVI"

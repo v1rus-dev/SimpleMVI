@@ -19,7 +19,7 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 - Group ID: `io.github.v1rus-dev`
 - Core module: `simple-mvi-core`
 - Compose Multiplatform module: `simple-mvi-compose`
-- Android Compose module: `simple-mvi-compose-android`
+- Android helpers module: `simple-mvi-android`
 
 <details open>
 <summary>Version catalog</summary>
@@ -31,7 +31,7 @@ simplemvi = "0.1.0"
 [libraries]
 simplemvi-core = { module = "io.github.v1rus-dev:simple-mvi-core", version.ref = "simplemvi" }
 simplemvi-compose = { module = "io.github.v1rus-dev:simple-mvi-compose", version.ref = "simplemvi" }
-simplemvi-compose-android = { module = "io.github.v1rus-dev:simple-mvi-compose-android", version.ref = "simplemvi" }
+simplemvi-android = { module = "io.github.v1rus-dev:simple-mvi-android", version.ref = "simplemvi" }
 ```
 
 </details>
@@ -52,7 +52,7 @@ dependencies {
     implementation("io.github.v1rus-dev:simple-mvi-compose:0.1.0")
 
     // Android-only helpers, including SavedStateHandle support
-    implementation("io.github.v1rus-dev:simple-mvi-compose-android:0.1.0")
+    implementation("io.github.v1rus-dev:simple-mvi-android:0.1.0")
 }
 ```
 
@@ -64,7 +64,7 @@ dependencies {
 | --- | --- | --- |
 | `simple-mvi-core` | Android, iOS | MVI contracts, state holder, and effect flow. |
 | `simple-mvi-compose` | Android, iOS | Compose Multiplatform `MviViewModel` and effect collection. |
-| `simple-mvi-compose-android` | Android | Android lifecycle helpers and `SavedStateHandle` extension. |
+| `simple-mvi-android` | Android | Android lifecycle helpers and `SavedStateHandle` extension. |
 
 ## Show Me The Code
 
