@@ -1,4 +1,6 @@
-# SimpleMVI
+<p align="center">
+  <img src="docs/images/simplemvi-banner.png" alt="SimpleMVI banner"/>
+</p>
 
 [![CI](https://github.com/v1rus-dev/SimpleMVI/actions/workflows/gradle.yml/badge.svg)](https://github.com/v1rus-dev/SimpleMVI/actions/workflows/gradle.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.v1rus-dev/simple-mvi-core?label=Maven%20Central)](https://central.sonatype.com/search?q=g%3Aio.github.v1rus-dev)
