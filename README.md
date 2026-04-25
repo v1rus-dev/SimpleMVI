@@ -15,7 +15,7 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 
 ## Quickstart
 
-- Latest project version: `1.0.0`
+- Latest project version: `0.1.0`
 - Group ID: `yegor.cheprasov.simplemvi`
 - Core module: `simple-mvi-core`
 - Compose Multiplatform module: `simple-mvi-compose`
@@ -26,7 +26,7 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 
 ```toml
 [versions]
-simplemvi = "1.0.0"
+simplemvi = "0.1.0"
 
 [libraries]
 simplemvi-core = { module = "yegor.cheprasov.simplemvi:simple-mvi-core", version.ref = "simplemvi" }
@@ -46,13 +46,13 @@ repositories {
 }
 
 dependencies {
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-core:1.0.0")
+    implementation("yegor.cheprasov.simplemvi:simple-mvi-core:0.1.0")
 
     // Compose Multiplatform helpers
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose:1.0.0")
+    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose:0.1.0")
 
     // Android-only helpers, including SavedStateHandle support
-    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose-android:1.0.0")
+    implementation("yegor.cheprasov.simplemvi:simple-mvi-compose-android:0.1.0")
 }
 ```
 
