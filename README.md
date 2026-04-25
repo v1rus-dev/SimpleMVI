@@ -31,8 +31,13 @@ It gives you a tiny set of contracts for **state**, **intent**, and **effect**, 
 simplemvi = "<latest-version>"
 
 [libraries]
+# Core MVI contracts and state container
 simplemvi-core = { module = "io.github.v1rus-dev:simple-mvi-core", version.ref = "simplemvi" }
+
+# Compose Multiplatform ViewModel and effect collection helpers
 simplemvi-compose = { module = "io.github.v1rus-dev:simple-mvi-compose", version.ref = "simplemvi" }
+
+# Android-only lifecycle and SavedStateHandle helpers
 simplemvi-android = { module = "io.github.v1rus-dev:simple-mvi-android", version.ref = "simplemvi" }
 ```
 
