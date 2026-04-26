@@ -36,4 +36,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run checks
-        run: ./gradlew check --no-configuration-cache
+        run: ./gradlew check :simple-mvi-core:allTests --no-configuration-cache
