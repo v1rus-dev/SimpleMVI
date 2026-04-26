@@ -1,0 +1,9 @@
+<resources>
+
+    <style name="Theme.SimpleMVINativeAndroid" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+</resources>

@@ -296,6 +296,7 @@ fun ThemeRoute(
 ## Saved State
 
 The Android module includes a small `SavedStateHandle.getOrPut` helper for route arguments and small saved values.
+`SavedStateHandle` is optional. Use it only when the ViewModel needs to keep small Android state after recreation.
 
 ```kotlin
 import androidx.lifecycle.SavedStateHandle
@@ -321,6 +322,18 @@ It demonstrates:
 - A named Koin singleton `SimpleMVI` store that controls the app theme.
 - Jetpack Navigation Compose in shared Compose code.
 - Android and iOS entry points.
+
+It also includes a native Android Jetpack Compose sample app:
+
+```text
+samples/native-android-app
+```
+
+It demonstrates:
+
+- A regular Android application module using `com.android.application` and `org.jetbrains.kotlin.android`.
+- AndroidX Jetpack Compose dependencies through the Compose BOM.
+- `simple-mvi-compose-android` integration with `MviViewModel`, lifecycle-aware effect collection, and `SavedStateHandle.getOrPut`.
 
 ## Design Goals
 
