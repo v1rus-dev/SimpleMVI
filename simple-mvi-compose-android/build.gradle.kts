@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.v1rus-dev"
-version = "0.2.0"
+version = "0.3.0"
 
 android {
     namespace = "io.github.v1rusdev.simplemvi.compose.android"
