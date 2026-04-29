@@ -3,6 +3,7 @@ package io.github.v1rusdev.simplemvi.samples.nativeandroid.counter
 import androidx.lifecycle.SavedStateHandle
 import io.github.v1rusdev.simplemvi.compose.MviViewModel
 import io.github.v1rusdev.simplemvi.compose.android.getOrPut
+import io.github.v1rusdev.simplemvi.core.handleIntent
 
 class NativeCounterViewModel(
     // SavedStateHandle is optional for MviViewModel. This sample uses it only to keep
@@ -15,7 +16,7 @@ class NativeCounterViewModel(
     ),
 ) {
 
-    override fun onIntent(intent: NativeCounterIntent) {
+    override fun onIntent(intent: NativeCounterIntent) = handleIntent(intent) {
         when (intent) {
             NativeCounterIntent.Decrement -> changeCount(delta = -uiState.value.step)
             NativeCounterIntent.Increment -> changeCount(delta = uiState.value.step)

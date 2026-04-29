@@ -1,12 +1,13 @@
 package io.github.v1rusdev.simplemvi.samples.compose.checkout
 
 import io.github.v1rusdev.simplemvi.compose.MviViewModel
+import io.github.v1rusdev.simplemvi.core.handleIntent
 
 class CheckoutMviViewModel : MviViewModel<CheckoutState, CheckoutIntent, CheckoutEffect>(
     initialState = CheckoutState(),
 ) {
 
-    override fun onIntent(intent: CheckoutIntent) {
+    override fun onIntent(intent: CheckoutIntent) = handleIntent(intent) {
         when (intent) {
             CheckoutIntent.ApplyPromo -> applyPromo()
             CheckoutIntent.BackClick -> sendEffect(CheckoutEffect.NavigateBack)

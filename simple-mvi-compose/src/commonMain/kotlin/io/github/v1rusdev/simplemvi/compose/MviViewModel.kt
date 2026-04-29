@@ -6,6 +6,7 @@ import io.github.v1rusdev.simplemvi.core.EffectUi
 import io.github.v1rusdev.simplemvi.core.IntentUi
 import io.github.v1rusdev.simplemvi.core.SimpleMVI
 import io.github.v1rusdev.simplemvi.core.StateUi
+import io.github.v1rusdev.simplemvi.core.handleIntent
 import io.github.v1rusdev.simplemvi.core.mvi
 
 /**
@@ -19,7 +20,9 @@ import io.github.v1rusdev.simplemvi.core.mvi
  * class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
  *     initialState = ProfileState.Loading,
  * ) {
- *     override fun onIntent(intent: ProfileIntent) = Unit
+ *     override fun onIntent(intent: ProfileIntent) = handleIntent(intent) {
+ *         Unit
+ *     }
  * }
  * ```
  */
@@ -33,6 +36,9 @@ abstract class MviViewModel<State : StateUi, Intent : IntentUi, Effect : EffectU
         extraBufferCapacity = extraBufferCapacity,
         onBufferOverflow = onBufferOverflow,
     ) {
+
+    override val loggerTagOwner: Any
+        get() = this
 
     /**
      * Creates a ViewModel with the default effect buffer.

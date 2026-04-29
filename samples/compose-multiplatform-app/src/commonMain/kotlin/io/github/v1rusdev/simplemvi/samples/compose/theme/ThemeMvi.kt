@@ -4,6 +4,7 @@ import io.github.v1rusdev.simplemvi.core.EffectUi
 import io.github.v1rusdev.simplemvi.core.IntentUi
 import io.github.v1rusdev.simplemvi.core.SimpleMVI
 import io.github.v1rusdev.simplemvi.core.StateUi
+import io.github.v1rusdev.simplemvi.core.handleIntent
 import io.github.v1rusdev.simplemvi.core.mvi
 
 data class ThemeStateUi(val isDarkTheme: Boolean) : StateUi
@@ -17,7 +18,10 @@ sealed interface ThemeEffectUi : EffectUi
 class ThemeStore : SimpleMVI<ThemeStateUi, ThemeIntentUi, ThemeEffectUi> by mvi(
     initialState = ThemeStateUi(isDarkTheme = false),
 ) {
-    override fun onIntent(intent: ThemeIntentUi) {
+    override val loggerTagOwner: Any
+        get() = this
+
+    override fun onIntent(intent: ThemeIntentUi) = handleIntent(intent) {
         when (intent) {
             ThemeIntentUi.ChangeDarkTheme -> updateState {
                 copy(isDarkTheme = !isDarkTheme)

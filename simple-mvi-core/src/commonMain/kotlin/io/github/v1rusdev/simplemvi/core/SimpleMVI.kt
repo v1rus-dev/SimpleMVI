@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.updateAndGet
 
 /**
  * Minimal MVI state container with observable state, one-time effects, and intent handling.
@@ -17,7 +16,7 @@ import kotlinx.coroutines.flow.updateAndGet
  *
  * Example:
  * ```
- * override fun onIntent(intent: ProfileIntent) {
+ * override fun onIntent(intent: ProfileIntent) = handleIntent(intent) {
  *     when (intent) {
  *         ProfileIntent.RefreshClicked -> updateState { copy(isRefreshing = true) }
  *     }
@@ -25,6 +24,15 @@ import kotlinx.coroutines.flow.updateAndGet
  * ```
  */
 interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
+    /**
+     * Owner used to derive the logger tag.
+     *
+     * Direct implementations can keep the default. Classes that delegate to `mvi(...)` can
+     * override this property to expose their final runtime type to [handleIntent].
+     */
+    val loggerTagOwner: Any
+        get() = this
+
     /**
      * Observable UI state for the screen.
      *
@@ -69,6 +77,22 @@ interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
      * Returns `true` when the effect was accepted by the underlying shared flow.
      */
     fun tryEmitEffect(effect: Effect): Boolean
+}
+
+/**
+ * Logs [intent] through [SimpleMviConfig.logger] and then runs [block].
+ *
+ * Use this inside `onIntent(...)` when you want intent logging from the installed logger.
+ */
+inline fun <Intent : IntentUi> SimpleMVI<*, Intent, *>.handleIntent(
+    intent: Intent,
+    block: () -> Unit,
+) {
+    SimpleMviConfig.logger.logIntent(
+        tag = loggerTagOwner.resolveSimpleMviLoggerTag(),
+        intent = intent,
+    )
+    block()
 }
 
 /**
@@ -135,8 +159,23 @@ private class SimpleMVIDelegate<State : StateUi, Intent : IntentUi, Effect : Eff
     override fun onIntent(intent: Intent) = Unit
 
     override fun updateState(transform: State.() -> State): State {
-        return mutableUiState.updateAndGet { currentState ->
-            currentState.transform()
+        while (true) {
+            val currentState = mutableUiState.value
+            val newState = currentState.transform()
+
+            if (!mutableUiState.compareAndSet(currentState, newState)) {
+                continue
+            }
+
+            if (currentState != newState) {
+                SimpleMviConfig.logger.logStateChange(
+                    tag = loggerTagOwner.resolveSimpleMviLoggerTag(),
+                    oldState = currentState,
+                    newState = newState,
+                )
+            }
+
+            return newState
         }
     }
 

@@ -33,6 +33,7 @@ This is intentionally a simple implementation. It does not force a classic MVI r
 - Core module: `simple-mvi-core`
 - Compose Multiplatform module: `simple-mvi-compose`
 - Android helpers module: `simple-mvi-android`
+- Optional logger module: `simple-mvi-logger`
 
 <details open>
 <summary>Version catalog</summary>
@@ -50,6 +51,9 @@ simplemvi-compose = { module = "io.github.v1rus-dev:simple-mvi-compose", version
 
 # Android-only lifecycle and SavedStateHandle helpers
 simplemvi-android = { module = "io.github.v1rus-dev:simple-mvi-android", version.ref = "simplemvi" }
+
+# Optional SimpleMVI logger module
+simplemvi-logger = { module = "io.github.v1rus-dev:simple-mvi-logger", version.ref = "simplemvi" }
 ```
 
 </details>
@@ -71,6 +75,9 @@ dependencies {
 
     // Android-only helpers, including SavedStateHandle support
     implementation("io.github.v1rus-dev:simple-mvi-android:<latest-version>")
+
+    // Optional install-based logger module
+    implementation("io.github.v1rus-dev:simple-mvi-logger:<latest-version>")
 }
 ```
 
@@ -83,6 +90,7 @@ dependencies {
 | `simple-mvi-core` | Android, iOS | MVI contracts, state holder, and effect flow. |
 | `simple-mvi-compose` | Android, iOS | Compose Multiplatform `MviViewModel` and effect collection. |
 | `simple-mvi-android` | Android | Android lifecycle helpers and `SavedStateHandle` extension. |
+| `simple-mvi-logger` | Android, iOS | Optional module that installs platform logging for intents and state transitions. |
 
 ## Core Concepts
 
@@ -119,11 +127,12 @@ Use `MviViewModel` when a Compose screen owns its state through a ViewModel.
 
 ```kotlin
 import io.github.v1rusdev.simplemvi.compose.MviViewModel
+import io.github.v1rusdev.simplemvi.core.handleIntent
 
 class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
     initialState = ProfileState(),
 ) {
-    override fun onIntent(intent: ProfileIntent) {
+    override fun onIntent(intent: ProfileIntent) = handleIntent(intent) {
         when (intent) {
             ProfileIntent.RefreshClick -> refresh()
             ProfileIntent.BackClick -> sendEffect(ProfileEffect.NavigateBack)
@@ -183,14 +192,17 @@ If you already have a base class, delegate `SimpleMVI` to a store created by `mv
 ```kotlin
 import androidx.lifecycle.ViewModel
 import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.handleIntent
 import io.github.v1rusdev.simplemvi.core.mvi
 
 class ProfileViewModel : ViewModel(),
     SimpleMVI<ProfileState, ProfileIntent, ProfileEffect> by mvi(
         initialState = ProfileState(),
     ) {
+    override val loggerTagOwner: Any
+        get() = this
 
-    override fun onIntent(intent: ProfileIntent) {
+    override fun onIntent(intent: ProfileIntent) = handleIntent(intent) {
         when (intent) {
             ProfileIntent.RefreshClick -> updateState {
                 copy(isRefreshing = true)
@@ -212,6 +224,7 @@ import io.github.v1rusdev.simplemvi.core.EffectUi
 import io.github.v1rusdev.simplemvi.core.IntentUi
 import io.github.v1rusdev.simplemvi.core.SimpleMVI
 import io.github.v1rusdev.simplemvi.core.StateUi
+import io.github.v1rusdev.simplemvi.core.handleIntent
 import io.github.v1rusdev.simplemvi.core.mvi
 
 data class ThemeState(
@@ -227,7 +240,10 @@ sealed interface ThemeEffect : EffectUi
 class ThemeStore : SimpleMVI<ThemeState, ThemeIntent, ThemeEffect> by mvi(
     initialState = ThemeState(),
 ) {
-    override fun onIntent(intent: ThemeIntent) {
+    override val loggerTagOwner: Any
+        get() = this
+
+    override fun onIntent(intent: ThemeIntent) = handleIntent(intent) {
         when (intent) {
             ThemeIntent.ToggleTheme -> updateState {
                 copy(isDarkTheme = !isDarkTheme)
@@ -248,6 +264,71 @@ store.updateState {
     copy(isDarkTheme = true)
 }
 ```
+
+## Optional Logging
+
+`simple-mvi-logger` is opt-in. If you do not add the dependency, `simple-mvi-core` keeps using `EmptySimpleMviLogger` and nothing is logged.
+
+When the module is added, install it once:
+
+```kotlin
+import io.github.v1rusdev.simplemvi.logger.SimpleMviLoggerModule
+
+fun initApp() {
+    SimpleMviLoggerModule.install()
+}
+```
+
+After `install()`:
+
+- `updateState { ... }` logs `State changed: <oldState> -> <newState>` automatically
+- `handleIntent(intent) { ... }` logs `Intent received: <intent>`
+
+Recommended `onIntent(...)` pattern:
+
+```kotlin
+import io.github.v1rusdev.simplemvi.core.handleIntent
+
+override fun onIntent(intent: ProfileIntent) = handleIntent(intent) {
+    when (intent) {
+        ProfileIntent.RefreshClick -> updateState { copy(isRefreshing = true) }
+        ProfileIntent.BackClick -> tryEmitEffect(ProfileEffect.NavigateBack)
+    }
+}
+```
+
+For classes that delegate to `mvi(...)`, expose the final class as the tag owner:
+
+```kotlin
+override val loggerTagOwner: Any
+    get() = this
+```
+
+Without that override, delegated stores may fall back to the generic `SimpleMVI` tag.
+
+To disable logging again:
+
+```kotlin
+import io.github.v1rusdev.simplemvi.logger.SimpleMviLoggerModule
+
+SimpleMviLoggerModule.uninstall()
+```
+
+Or reset it manually:
+
+```kotlin
+import io.github.v1rusdev.simplemvi.core.EmptySimpleMviLogger
+import io.github.v1rusdev.simplemvi.core.SimpleMviConfig
+
+SimpleMviConfig.logger = EmptySimpleMviLogger
+```
+
+The default installed logger writes:
+
+- Android: `android.util.Log.d(...)`
+- iOS: `NSLog(...)`
+
+Important limitation: intent logging is automatic only for `onIntent(...)` implementations that call `handleIntent(...)`. Old `onIntent(...)` code still works, but those intent calls are not logged until the helper is adopted.
 
 ## Koin Store Example
 
