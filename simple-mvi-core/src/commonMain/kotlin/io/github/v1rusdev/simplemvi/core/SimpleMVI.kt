@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.updateAndGet
  * Minimal MVI state container with observable state, one-time effects, and intent handling.
  *
  * Implement [onIntent] in your screen model and use [updateState] plus [emitEffect] or
- * [tryEmitEffect] to react to UI events.
+ * [tryEmitEffect] to react to UI events. Prefer [SimpleMviStore] when you want a core store
+ * that guarantees global intent observability before intent handling.
  *
  * Example:
  * ```
@@ -90,6 +91,9 @@ interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
  *         initialState = ProfileState.Loading,
  *     )
  * ```
+ *
+ * When a class overrides [SimpleMVI.onIntent] itself, that class owns intent handling and does
+ * not automatically pass through [SimpleMviConfig] intent hooks.
  */
 fun <State : StateUi, Intent : IntentUi, Effect : EffectUi> mvi(
     initialState: State,
@@ -132,7 +136,9 @@ private class SimpleMVIDelegate<State : StateUi, Intent : IntentUi, Effect : Eff
 
     override val uiEffects: Flow<Effect> = mutableUiEffects.asSharedFlow()
 
-    override fun onIntent(intent: Intent) = Unit
+    override fun onIntent(intent: Intent) {
+        SimpleMviConfig.notifyIntent(intent)
+    }
 
     override fun updateState(transform: State.() -> State): State {
         return mutableUiState.updateAndGet { currentState ->
@@ -141,10 +147,12 @@ private class SimpleMVIDelegate<State : StateUi, Intent : IntentUi, Effect : Eff
     }
 
     override suspend fun emitEffect(effect: Effect) {
+        SimpleMviConfig.notifyEffect(effect)
         mutableUiEffects.emit(effect)
     }
 
     override fun tryEmitEffect(effect: Effect): Boolean {
+        SimpleMviConfig.notifyEffect(effect)
         return mutableUiEffects.tryEmit(effect)
     }
 }

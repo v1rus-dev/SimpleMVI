@@ -6,7 +6,7 @@ class CheckoutMviViewModel : MviViewModel<CheckoutState, CheckoutIntent, Checkou
     initialState = CheckoutState(),
 ) {
 
-    override fun onIntent(intent: CheckoutIntent) {
+    override fun handleIntent(intent: CheckoutIntent) {
         when (intent) {
             CheckoutIntent.ApplyPromo -> applyPromo()
             CheckoutIntent.BackClick -> sendEffect(CheckoutEffect.NavigateBack)

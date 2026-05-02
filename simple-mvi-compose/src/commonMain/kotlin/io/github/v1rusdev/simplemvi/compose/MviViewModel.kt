@@ -11,7 +11,7 @@ import io.github.v1rusdev.simplemvi.core.mvi
 /**
  * Base [ViewModel] that delegates SimpleMVI state and effect handling.
  *
- * Extend this class for Compose screens, override `onIntent`, and expose [uiState] plus
+ * Extend this class for Compose screens, override `handleIntent`, and expose [uiState] plus
  * [uiEffects] directly to the UI.
  *
  * Example:
@@ -19,20 +19,26 @@ import io.github.v1rusdev.simplemvi.core.mvi
  * class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
  *     initialState = ProfileState.Loading,
  * ) {
- *     override fun onIntent(intent: ProfileIntent) = Unit
+ *     override fun handleIntent(intent: ProfileIntent) = Unit
  * }
  * ```
  */
-abstract class MviViewModel<State : StateUi, Intent : IntentUi, Effect : EffectUi>(
-    initialState: State,
-    extraBufferCapacity: Int,
-    onBufferOverflow: BufferOverflow,
+abstract class MviViewModel<State : StateUi, Intent : IntentUi, Effect : EffectUi> private constructor(
+    private val simpleMvi: SimpleMVI<State, Intent, Effect>,
 ) : ViewModel(),
-    SimpleMVI<State, Intent, Effect> by mvi(
-        initialState = initialState,
-        extraBufferCapacity = extraBufferCapacity,
-        onBufferOverflow = onBufferOverflow,
-    ) {
+    SimpleMVI<State, Intent, Effect> by simpleMvi {
+
+    constructor(
+        initialState: State,
+        extraBufferCapacity: Int,
+        onBufferOverflow: BufferOverflow,
+    ) : this(
+        simpleMvi = mvi(
+            initialState = initialState,
+            extraBufferCapacity = extraBufferCapacity,
+            onBufferOverflow = onBufferOverflow,
+        ),
+    )
 
     /**
      * Creates a ViewModel with the default effect buffer.
@@ -53,4 +59,14 @@ abstract class MviViewModel<State : StateUi, Intent : IntentUi, Effect : EffectU
     protected fun sendEffect(effect: Effect): Boolean {
         return tryEmitEffect(effect)
     }
+
+    final override fun onIntent(intent: Intent) {
+        simpleMvi.onIntent(intent)
+        handleIntent(intent)
+    }
+
+    /**
+     * Handles an intent after global SimpleMVI observability hooks have been notified.
+     */
+    protected abstract fun handleIntent(intent: Intent)
 }

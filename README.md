@@ -113,6 +113,26 @@ sealed interface ProfileEffect : EffectUi {
 - `IntentUi` is a user or UI action.
 - `EffectUi` is a one-time event such as navigation, snackbar, toast, or dialog.
 
+## Global Observability
+
+Configure global hooks once during application startup when you want to log or analyze every observed intent and effect.
+
+```kotlin
+import io.github.v1rusdev.simplemvi.core.SimpleMviConfig
+
+SimpleMviConfig.configure {
+    onIntent { intent ->
+        println("SimpleMVI intent: $intent")
+    }
+    onEffect { effect ->
+        println("SimpleMVI effect: $effect")
+    }
+}
+```
+
+`configure {}` replaces the previous configuration snapshot. Use `SimpleMviConfig.reset()` in tests when you need to restore the default no-op hooks.
+`MviViewModel` and `SimpleMviStore` notify the intent hook before calling your `handleIntent` implementation. Direct `SimpleMVI` implementations are an escape hatch and do not automatically participate in that intent path when they override `onIntent`.
+
 ## Compose ViewModel
 
 Use `MviViewModel` when a Compose screen owns its state through a ViewModel.
@@ -123,7 +143,7 @@ import io.github.v1rusdev.simplemvi.compose.MviViewModel
 class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
     initialState = ProfileState(),
 ) {
-    override fun onIntent(intent: ProfileIntent) {
+    override fun handleIntent(intent: ProfileIntent) {
         when (intent) {
             ProfileIntent.RefreshClick -> refresh()
             ProfileIntent.BackClick -> sendEffect(ProfileEffect.NavigateBack)
@@ -201,7 +221,7 @@ class ProfileViewModel : ViewModel(),
 }
 ```
 
-`mvi(...)` creates the backing state and effect flows. In this pattern it is called when the object that delegates to it is created.
+`mvi(...)` creates the backing state and effect flows. In this pattern it is called when the object that delegates to it is created. If this class overrides `onIntent`, it owns that intent path itself; prefer `MviViewModel` or `SimpleMviStore` when you want guaranteed global intent observability.
 
 ## Standalone Store
 
@@ -210,9 +230,8 @@ You can use `simple-mvi-core` without ViewModel or Compose. This is useful for s
 ```kotlin
 import io.github.v1rusdev.simplemvi.core.EffectUi
 import io.github.v1rusdev.simplemvi.core.IntentUi
-import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.SimpleMviStore
 import io.github.v1rusdev.simplemvi.core.StateUi
-import io.github.v1rusdev.simplemvi.core.mvi
 
 data class ThemeState(
     val isDarkTheme: Boolean = false,
@@ -224,10 +243,10 @@ sealed interface ThemeIntent : IntentUi {
 
 sealed interface ThemeEffect : EffectUi
 
-class ThemeStore : SimpleMVI<ThemeState, ThemeIntent, ThemeEffect> by mvi(
+class ThemeStore : SimpleMviStore<ThemeState, ThemeIntent, ThemeEffect>(
     initialState = ThemeState(),
 ) {
-    override fun onIntent(intent: ThemeIntent) {
+    override fun handleIntent(intent: ThemeIntent) {
         when (intent) {
             ThemeIntent.ToggleTheme -> updateState {
                 copy(isDarkTheme = !isDarkTheme)
@@ -237,7 +256,7 @@ class ThemeStore : SimpleMVI<ThemeState, ThemeIntent, ThemeEffect> by mvi(
 }
 ```
 
-The raw `mvi(...)` function creates a store, but its default `onIntent` does nothing. Wrap it in a class when you want intent handling:
+The raw `mvi(...)` function creates a store, but its default `onIntent` only notifies global observability hooks and does not handle the intent. Wrap it in `SimpleMviStore` when you want intent handling:
 
 ```kotlin
 val store = mvi<ThemeState, ThemeIntent, ThemeEffect>(

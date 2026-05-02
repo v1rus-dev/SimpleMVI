@@ -15,7 +15,7 @@ class NativeCounterViewModel(
     ),
 ) {
 
-    override fun onIntent(intent: NativeCounterIntent) {
+    override fun handleIntent(intent: NativeCounterIntent) {
         when (intent) {
             NativeCounterIntent.Decrement -> changeCount(delta = -uiState.value.step)
             NativeCounterIntent.Increment -> changeCount(delta = uiState.value.step)
