@@ -23,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.MviStore
 import io.github.v1rusdev.simplemvi.samples.compose.di.ThemeStoreQualifier
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
@@ -31,7 +31,7 @@ import org.koin.core.qualifier.named
 @Composable
 fun ThemeRoute(
     onBackClick: () -> Unit,
-    themeStore: SimpleMVI<ThemeStateUi, ThemeIntentUi, ThemeEffectUi> = koinInject(
+    themeStore: MviStore<ThemeState, ThemeIntent, ThemeEffect> = koinInject(
         qualifier = named(ThemeStoreQualifier),
     ),
 ) {
@@ -40,14 +40,14 @@ fun ThemeRoute(
     ThemeScreen(
         state = state,
         onBackClick = onBackClick,
-        onToggleClick = { themeStore.onIntent(ThemeIntentUi.ChangeDarkTheme) },
+        onToggleClick = { themeStore.onIntent(ThemeIntent.ChangeDarkTheme) },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeScreen(
-    state: ThemeStateUi,
+    state: ThemeState,
     onBackClick: () -> Unit,
     onToggleClick: () -> Unit,
 ) {
@@ -123,7 +123,7 @@ private fun ThemeScreen(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                text = "Switch dispatches ThemeIntentUi.ChangeDarkTheme to the shared store.",
+                                text = "Switch dispatches ThemeIntent.ChangeDarkTheme to the shared store.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

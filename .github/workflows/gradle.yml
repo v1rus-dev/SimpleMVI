@@ -39,4 +39,4 @@ jobs:
         run: ./gradlew check --no-configuration-cache
 
       - name: Run all tests
-        run: ./gradlew :simple-mvi-core:allTests --no-configuration-cache
+        run: ./gradlew :simple-mvi-core:allTests :simple-mvi-compose:allTests :simple-mvi-android:testDebugUnitTest --no-configuration-cache

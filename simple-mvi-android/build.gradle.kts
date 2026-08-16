@@ -8,10 +8,10 @@ plugins {
 }
 
 group = "io.github.v1rus-dev"
-version = "0.3.0"
+version = "0.4.0"
 
 android {
-    namespace = "io.github.v1rusdev.simplemvi.compose.android"
+    namespace = "io.github.v1rusdev.simplemvi.android"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -21,6 +21,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 
@@ -37,6 +41,8 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    testImplementation(libs.kotlin.test)
 }
 
 mavenPublishing {

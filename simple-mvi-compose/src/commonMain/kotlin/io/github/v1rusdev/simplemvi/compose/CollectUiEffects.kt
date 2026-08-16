@@ -13,19 +13,27 @@ import io.github.v1rusdev.simplemvi.core.EffectUi
 /**
  * Collects one-time UI effects in a lifecycle-aware Compose scope.
  *
- * Collection starts when [lifecycleOwner] reaches [minActiveState] and stops when it moves below it.
+ * Collection starts when [lifecycleOwner] reaches [minActiveState] and stops when it moves below
+ * it. The effect flow does not replay, so effects emitted while collection is stopped are
+ * **silently dropped**. Send effects only in response to a user intent, and keep durable data in
+ * the state flow instead.
  *
  * Example:
  * ```
- * CollectEffectsUiEvent(viewModel.uiEffects) { effect ->
+ * CollectUiEffects(viewModel.uiEffects) { effect ->
  *     when (effect) {
  *         is ProfileEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
  *     }
  * }
  * ```
+ *
+ * @param effectsFlow the effect flow to collect, usually `viewModel.uiEffects`.
+ * @param lifecycleOwner the owner whose lifecycle gates collection.
+ * @param minActiveState the lowest lifecycle state at which effects are collected.
+ * @param onEffect invoked for every collected effect, in the collecting coroutine.
  */
 @Composable
-fun <Effect : EffectUi> CollectEffectsUiEvent(
+fun <Effect : EffectUi> CollectUiEffects(
     effectsFlow: Flow<Effect>,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     minActiveState: Lifecycle.State = Lifecycle.State.STARTED,

@@ -3,7 +3,7 @@ package io.github.v1rusdev.simplemvi.core
 /**
  * Marker interface for one-time UI effects such as navigation, snackbars, or dialogs.
  *
- * Effects are emitted through [SimpleMVI.uiEffects] and should not be stored in [StateUi].
+ * Effects are emitted through [MviStore.uiEffects] and should not be stored in [StateUi].
  *
  * Example:
  * ```

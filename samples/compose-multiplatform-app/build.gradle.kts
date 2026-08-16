@@ -38,14 +38,12 @@ kotlin {
             implementation(libs.org.jetbrains.androidx.navigation.compose)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation(libs.koin.core)
+            implementation(libs.napier)
         }
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
-        }
-
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
         }
     }
 }
