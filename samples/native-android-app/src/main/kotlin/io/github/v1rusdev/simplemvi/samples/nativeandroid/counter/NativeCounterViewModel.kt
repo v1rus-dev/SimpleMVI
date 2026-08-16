@@ -2,7 +2,7 @@ package io.github.v1rusdev.simplemvi.samples.nativeandroid.counter
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.v1rusdev.simplemvi.compose.MviViewModel
-import io.github.v1rusdev.simplemvi.compose.android.getOrPut
+import io.github.v1rusdev.simplemvi.android.getOrPut
 
 class NativeCounterViewModel(
     // SavedStateHandle is optional for MviViewModel. This sample uses it only to keep

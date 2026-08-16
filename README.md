@@ -115,23 +115,32 @@ sealed interface ProfileEffect : EffectUi {
 
 ## Global Observability
 
-Configure global hooks once during application startup when you want to log or analyze every observed intent and effect.
+The hooks are global and process-wide. Configure them once during application startup — from your `Application`, or from the platform entry point in shared code — when you want to log or analyze every observed intent and effect.
 
 ```kotlin
-import io.github.v1rusdev.simplemvi.core.SimpleMviConfig
+import io.github.v1rusdev.simplemvi.core.MviConfig
 
-SimpleMviConfig.configure {
+MviConfig.configure {
     onIntent { intent ->
         println("SimpleMVI intent: $intent")
     }
     onEffect { effect ->
         println("SimpleMVI effect: $effect")
     }
+    onError { error ->
+        println("SimpleMVI hook failed: $error")
+    }
 }
 ```
 
-`configure {}` replaces the previous configuration snapshot. Use `SimpleMviConfig.reset()` in tests when you need to restore the default no-op hooks.
-`MviViewModel` and `SimpleMviStore` notify the intent hook before calling your `handleIntent` implementation. Direct `SimpleMVI` implementations are an escape hatch and do not automatically participate in that intent path when they override `onIntent`.
+`configure {}` merges into the current configuration: only the hooks you set inside the block are replaced, the others keep their previous value. Use `MviConfig.reset()` to drop every hook at once, including in tests.
+
+Hooks are observability only and must never break the store they observe:
+
+- An exception thrown by `onIntent` or `onEffect` is caught and routed to `onError` instead of propagating into the intent or effect path. An exception thrown by `onError` itself is ignored.
+- `onEffect` fires only for effects the effect flow accepted. A `tryEmitEffect` that returns `false` dropped the effect, and no hook is notified for it. Acceptance is not delivery, though: when nothing is collecting `uiEffects` — for example while the screen is stopped — the effect is still accepted, then discarded, and the hook does fire.
+
+`MviViewModel` and `BaseMviStore` notify the intent hook before calling your `handleIntent` implementation. A class that delegates to `createStore(...)` and overrides `onIntent` itself owns that path and takes over the notification — see [Store Delegation](#store-delegation).
 
 ## Compose ViewModel
 
@@ -162,7 +171,7 @@ Collect state and effects separately in Compose:
 ```kotlin
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.v1rusdev.simplemvi.compose.CollectEffectsUiEvent
+import io.github.v1rusdev.simplemvi.compose.CollectUiEffects
 
 @Composable
 fun ProfileRoute(
@@ -171,7 +180,7 @@ fun ProfileRoute(
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle()
 
-    CollectEffectsUiEvent(viewModel.uiEffects) { effect ->
+    CollectUiEffects(viewModel.uiEffects) { effect ->
         when (effect) {
             ProfileEffect.NavigateBack -> onBack()
             is ProfileEffect.ShowMessage -> {
@@ -196,17 +205,42 @@ ProfileScreen(
 )
 ```
 
+## Emitting Effects
+
+There are two ways to emit a one-time effect, and they differ in what happens when the effect buffer cannot take it:
+
+| | Suspends | On a full buffer |
+| --- | --- | --- |
+| `tryEmitEffect(effect)` | no | returns `false`, the effect is dropped |
+| `emitEffect(effect)` | yes | waits for buffer space, the effect is not lost |
+
+`MviViewModel.sendEffect(effect)` is a shorthand for `tryEmitEffect` and returns the same `Boolean`. Use `emitEffect` from a coroutine when the effect must survive backpressure, and check the result of `tryEmitEffect` when it must not be lost silently.
+
+The default effect flow keeps one extra effect and drops the oldest item on overflow. Pass `extraBufferCapacity` and `onBufferOverflow` to `createStore(...)`, or to the `MviViewModel` / `BaseMviStore` constructor, when a screen needs a different strategy:
+
+```kotlin
+import kotlinx.coroutines.channels.BufferOverflow
+
+class ProfileViewModel : MviViewModel<ProfileState, ProfileIntent, ProfileEffect>(
+    initialState = ProfileState(),
+    extraBufferCapacity = 8,
+    onBufferOverflow = BufferOverflow.SUSPEND,
+)
+```
+
+`CollectUiEffects` gates collection on the lifecycle: it starts when `lifecycleOwner` reaches `minActiveState` (`Lifecycle.State.STARTED` by default) and stops below it. The effect flow does not replay, so **effects emitted while the screen is stopped are silently dropped**. Send effects in response to a user intent, and keep anything that must survive a backgrounded screen in the state flow instead.
+
 ## Store Delegation
 
-If you already have a base class, delegate `SimpleMVI` to a store created by `mvi(...)`.
+If you already have a base class, delegate `MviStore` to a store created by `createStore(...)`.
 
 ```kotlin
 import androidx.lifecycle.ViewModel
-import io.github.v1rusdev.simplemvi.core.SimpleMVI
-import io.github.v1rusdev.simplemvi.core.mvi
+import io.github.v1rusdev.simplemvi.core.MviStore
+import io.github.v1rusdev.simplemvi.core.createStore
 
 class ProfileViewModel : ViewModel(),
-    SimpleMVI<ProfileState, ProfileIntent, ProfileEffect> by mvi(
+    MviStore<ProfileState, ProfileIntent, ProfileEffect> by createStore(
         initialState = ProfileState(),
     ) {
 
@@ -221,7 +255,7 @@ class ProfileViewModel : ViewModel(),
 }
 ```
 
-`mvi(...)` creates the backing state and effect flows. In this pattern it is called when the object that delegates to it is created. If this class overrides `onIntent`, it owns that intent path itself; prefer `MviViewModel` or `SimpleMviStore` when you want guaranteed global intent observability.
+`createStore(...)` creates the backing state and effect flows. In this pattern it is called when the object that delegates to it is created. If this class overrides `onIntent`, it owns that intent path itself; prefer `MviViewModel` or `BaseMviStore` when you want guaranteed global intent observability.
 
 ## Standalone Store
 
@@ -230,7 +264,7 @@ You can use `simple-mvi-core` without ViewModel or Compose. This is useful for s
 ```kotlin
 import io.github.v1rusdev.simplemvi.core.EffectUi
 import io.github.v1rusdev.simplemvi.core.IntentUi
-import io.github.v1rusdev.simplemvi.core.SimpleMviStore
+import io.github.v1rusdev.simplemvi.core.BaseMviStore
 import io.github.v1rusdev.simplemvi.core.StateUi
 
 data class ThemeState(
@@ -243,7 +277,7 @@ sealed interface ThemeIntent : IntentUi {
 
 sealed interface ThemeEffect : EffectUi
 
-class ThemeStore : SimpleMviStore<ThemeState, ThemeIntent, ThemeEffect>(
+class ThemeStore : BaseMviStore<ThemeState, ThemeIntent, ThemeEffect>(
     initialState = ThemeState(),
 ) {
     override fun handleIntent(intent: ThemeIntent) {
@@ -256,10 +290,10 @@ class ThemeStore : SimpleMviStore<ThemeState, ThemeIntent, ThemeEffect>(
 }
 ```
 
-The raw `mvi(...)` function creates a store, but its default `onIntent` only notifies global observability hooks and does not handle the intent. Wrap it in `SimpleMviStore` when you want intent handling:
+`createStore(...)` alone gives you the state and effect flows without any intent handling, which is enough for a store that is only ever written to directly:
 
 ```kotlin
-val store = mvi<ThemeState, ThemeIntent, ThemeEffect>(
+val store = createStore<ThemeState, ThemeIntent, ThemeEffect>(
     initialState = ThemeState(),
 )
 
@@ -268,19 +302,21 @@ store.updateState {
 }
 ```
 
+A store created this way never gets torn down on its own: SimpleMVI does not own a `CoroutineScope` and has no `close()` or lifecycle callback. A shared store held by DI lives for the whole process, so keep any subscriptions it owns outside of it.
+
 ## Koin Store Example
 
-Because `SimpleMVI` is just an interface, you can create stores in DI and share them across screens.
+Because `MviStore` is just an interface, you can create stores in DI and share them across screens.
 
 ```kotlin
-import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.MviStore
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 private const val ThemeStoreQualifier = "themeStore"
 
 val appModule = module {
-    single<SimpleMVI<ThemeState, ThemeIntent, ThemeEffect>>(named(ThemeStoreQualifier)) {
+    single<MviStore<ThemeState, ThemeIntent, ThemeEffect>>(named(ThemeStoreQualifier)) {
         ThemeStore()
     }
 }
@@ -290,7 +326,7 @@ Then inject the same store from an app-level ViewModel and from a screen:
 
 ```kotlin
 class MainViewModel(
-    themeStore: SimpleMVI<ThemeState, ThemeIntent, ThemeEffect>,
+    themeStore: MviStore<ThemeState, ThemeIntent, ThemeEffect>,
 ) : ViewModel() {
     val themeState = themeStore.uiState
 }
@@ -299,7 +335,7 @@ class MainViewModel(
 ```kotlin
 @Composable
 fun ThemeRoute(
-    themeStore: SimpleMVI<ThemeState, ThemeIntent, ThemeEffect>,
+    themeStore: MviStore<ThemeState, ThemeIntent, ThemeEffect>,
 ) {
     val state = themeStore.uiState.collectAsStateWithLifecycle()
 
@@ -319,7 +355,7 @@ The Android module includes a small `SavedStateHandle.getOrPut` helper for route
 
 ```kotlin
 import androidx.lifecycle.SavedStateHandle
-import io.github.v1rusdev.simplemvi.compose.android.getOrPut
+import io.github.v1rusdev.simplemvi.android.getOrPut
 
 val profileId = savedStateHandle.getOrPut("profile_id") {
     "me"
@@ -337,8 +373,8 @@ samples/compose-multiplatform-app
 It demonstrates:
 
 - A regular `androidx.lifecycle.ViewModel` screen with `StateFlow`.
-- A `SimpleMVI` `MviViewModel` screen where Compose sends only `onIntent`.
-- A named Koin singleton `SimpleMVI` store that controls the app theme.
+- A SimpleMVI `MviViewModel` screen where Compose sends only `onIntent`.
+- A named Koin singleton `MviStore` that controls the app theme.
 - Jetpack Navigation Compose in shared Compose code.
 - Android and iOS entry points.
 
@@ -352,7 +388,7 @@ It demonstrates:
 
 - A regular Android application module using `com.android.application` and `org.jetbrains.kotlin.android`.
 - AndroidX Jetpack Compose dependencies through the Compose BOM.
-- `simple-mvi-compose-android` integration with `MviViewModel`, lifecycle-aware effect collection, and `SavedStateHandle.getOrPut`.
+- `simple-mvi-android` integration with `MviViewModel`, lifecycle-aware effect collection, and `SavedStateHandle.getOrPut`.
 
 ## Design Goals
 

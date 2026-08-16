@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import io.github.v1rusdev.simplemvi.core.EffectUi
 import io.github.v1rusdev.simplemvi.core.IntentUi
-import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.MviStore
 import io.github.v1rusdev.simplemvi.core.StateUi
-import io.github.v1rusdev.simplemvi.core.mvi
+import io.github.v1rusdev.simplemvi.core.createStore
 
 /**
  * Base [ViewModel] that delegates SimpleMVI state and effect handling.
@@ -24,16 +24,16 @@ import io.github.v1rusdev.simplemvi.core.mvi
  * ```
  */
 abstract class MviViewModel<State : StateUi, Intent : IntentUi, Effect : EffectUi> private constructor(
-    private val simpleMvi: SimpleMVI<State, Intent, Effect>,
+    private val store: MviStore<State, Intent, Effect>,
 ) : ViewModel(),
-    SimpleMVI<State, Intent, Effect> by simpleMvi {
+    MviStore<State, Intent, Effect> by store {
 
     constructor(
         initialState: State,
         extraBufferCapacity: Int,
         onBufferOverflow: BufferOverflow,
     ) : this(
-        simpleMvi = mvi(
+        store = createStore(
             initialState = initialState,
             extraBufferCapacity = extraBufferCapacity,
             onBufferOverflow = onBufferOverflow,
@@ -54,14 +54,15 @@ abstract class MviViewModel<State : StateUi, Intent : IntentUi, Effect : EffectU
     /**
      * Emits a one-time UI [effect] from a ViewModel without suspension.
      *
-     * Returns `true` when the effect was accepted by the effect flow.
+     * Returns `true` when the effect was accepted by the effect flow. A `false` result means the
+     * effect was dropped and never reached the UI.
      */
     protected fun sendEffect(effect: Effect): Boolean {
         return tryEmitEffect(effect)
     }
 
     final override fun onIntent(intent: Intent) {
-        simpleMvi.onIntent(intent)
+        store.onIntent(intent)
         handleIntent(intent)
     }
 

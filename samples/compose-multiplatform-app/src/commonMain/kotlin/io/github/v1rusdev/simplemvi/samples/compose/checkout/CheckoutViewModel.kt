@@ -2,7 +2,7 @@ package io.github.v1rusdev.simplemvi.samples.compose.checkout
 
 import io.github.v1rusdev.simplemvi.compose.MviViewModel
 
-class CheckoutMviViewModel : MviViewModel<CheckoutState, CheckoutIntent, CheckoutEffect>(
+class CheckoutViewModel : MviViewModel<CheckoutState, CheckoutIntent, CheckoutEffect>(
     initialState = CheckoutState(),
 ) {
 

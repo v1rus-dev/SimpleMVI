@@ -1,12 +1,12 @@
 package io.github.v1rusdev.simplemvi.samples.compose.di
 
-import io.github.v1rusdev.simplemvi.core.SimpleMVI
+import io.github.v1rusdev.simplemvi.core.MviStore
 import io.github.v1rusdev.simplemvi.samples.compose.MainViewModel
-import io.github.v1rusdev.simplemvi.samples.compose.checkout.CheckoutMviViewModel
+import io.github.v1rusdev.simplemvi.samples.compose.checkout.CheckoutViewModel
 import io.github.v1rusdev.simplemvi.samples.compose.counter.CounterViewModel
-import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeEffectUi
-import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeIntentUi
-import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeStateUi
+import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeEffect
+import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeIntent
+import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeState
 import io.github.v1rusdev.simplemvi.samples.compose.theme.ThemeStore
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.viewModel
@@ -16,7 +16,7 @@ import org.koin.dsl.module
 const val ThemeStoreQualifier = "themeStore"
 
 private val appModule = module {
-    single<SimpleMVI<ThemeStateUi, ThemeIntentUi, ThemeEffectUi>>(named(ThemeStoreQualifier)) {
+    single<MviStore<ThemeState, ThemeIntent, ThemeEffect>>(named(ThemeStoreQualifier)) {
         ThemeStore()
     }
     viewModel {
@@ -25,7 +25,7 @@ private val appModule = module {
         )
     }
     viewModel { CounterViewModel() }
-    viewModel { CheckoutMviViewModel() }
+    viewModel { CheckoutViewModel() }
 }
 
 fun initKoin() {

@@ -8,11 +8,11 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
-class SimpleMVIKoinTest {
+class MviStoreKoinTest {
 
     @Test
     fun store_keeps_initial_state() {
-        val store = mvi<TestState, TestIntent, TestEffect>(
+        val store = createStore<TestState, TestIntent, TestEffect>(
             initialState = TestState(value = 7),
         )
 
@@ -21,10 +21,10 @@ class SimpleMVIKoinTest {
 
     @Test
     fun update_state_changes_only_current_store() {
-        val firstStore = mvi<TestState, TestIntent, TestEffect>(
+        val firstStore = createStore<TestState, TestIntent, TestEffect>(
             initialState = TestState(value = 0),
         )
-        val secondStore = mvi<TestState, TestIntent, TestEffect>(
+        val secondStore = createStore<TestState, TestIntent, TestEffect>(
             initialState = TestState(value = 100),
         )
 
@@ -42,17 +42,17 @@ class SimpleMVIKoinTest {
         val app = koinApplication {
             modules(
                 module {
-                    single<SimpleMVI<TestState, TestIntent, TestEffect>>(named("firstStore")) {
+                    single<MviStore<TestState, TestIntent, TestEffect>>(named("firstStore")) {
                         TestStore(initialValue = 0)
                     }
                 },
             )
         }
 
-        val firstInstance = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val firstInstance = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("firstStore"),
         )
-        val secondInstance = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val secondInstance = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("firstStore"),
         )
 
@@ -64,20 +64,20 @@ class SimpleMVIKoinTest {
         val app = koinApplication {
             modules(
                 module {
-                    single<SimpleMVI<TestState, TestIntent, TestEffect>>(named("firstStore")) {
+                    single<MviStore<TestState, TestIntent, TestEffect>>(named("firstStore")) {
                         TestStore(initialValue = 0)
                     }
-                    single<SimpleMVI<TestState, TestIntent, TestEffect>>(named("secondStore")) {
+                    single<MviStore<TestState, TestIntent, TestEffect>>(named("secondStore")) {
                         TestStore(initialValue = 100)
                     }
                 },
             )
         }
 
-        val firstStore = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val firstStore = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("firstStore"),
         )
-        val secondStore = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val secondStore = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("secondStore"),
         )
 
@@ -95,26 +95,26 @@ class SimpleMVIKoinTest {
         val app = koinApplication {
             modules(
                 module {
-                    single<SimpleMVI<TestState, TestIntent, TestEffect>>(named("counterStore")) {
+                    single<MviStore<TestState, TestIntent, TestEffect>>(named("counterStore")) {
                         TestStore(initialValue = 0)
                     }
-                    single<SimpleMVI<OtherState, OtherIntent, OtherEffect>>(named("textStore")) {
+                    single<MviStore<OtherState, OtherIntent, OtherEffect>>(named("textStore")) {
                         OtherStore(initialText = "initial")
                     }
-                    single<SimpleMVI<FlagState, FlagIntent, FlagEffect>>(named("flagStore")) {
+                    single<MviStore<FlagState, FlagIntent, FlagEffect>>(named("flagStore")) {
                         FlagStore(initialEnabled = false)
                     }
                 },
             )
         }
 
-        val counterStore = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val counterStore = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("counterStore"),
         )
-        val textStore = app.koin.get<SimpleMVI<OtherState, OtherIntent, OtherEffect>>(
+        val textStore = app.koin.get<MviStore<OtherState, OtherIntent, OtherEffect>>(
             named("textStore"),
         )
-        val flagStore = app.koin.get<SimpleMVI<FlagState, FlagIntent, FlagEffect>>(
+        val flagStore = app.koin.get<MviStore<FlagState, FlagIntent, FlagEffect>>(
             named("flagStore"),
         )
 
@@ -132,17 +132,17 @@ class SimpleMVIKoinTest {
         val app = koinApplication {
             modules(
                 module {
-                    factory<SimpleMVI<TestState, TestIntent, TestEffect>>(named("counterFactory")) {
+                    factory<MviStore<TestState, TestIntent, TestEffect>>(named("counterFactory")) {
                         TestStore(initialValue = 0)
                     }
                 },
             )
         }
 
-        val firstStore = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val firstStore = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("counterFactory"),
         )
-        val secondStore = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val secondStore = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("counterFactory"),
         )
 
@@ -160,26 +160,26 @@ class SimpleMVIKoinTest {
         val app = koinApplication {
             modules(
                 module {
-                    factory<SimpleMVI<TestState, TestIntent, TestEffect>>(named("counterFactory")) {
+                    factory<MviStore<TestState, TestIntent, TestEffect>>(named("counterFactory")) {
                         TestStore(initialValue = 10)
                     }
-                    factory<SimpleMVI<OtherState, OtherIntent, OtherEffect>>(named("textFactory")) {
+                    factory<MviStore<OtherState, OtherIntent, OtherEffect>>(named("textFactory")) {
                         OtherStore(initialText = "initial")
                     }
-                    factory<SimpleMVI<FlagState, FlagIntent, FlagEffect>>(named("flagFactory")) {
+                    factory<MviStore<FlagState, FlagIntent, FlagEffect>>(named("flagFactory")) {
                         FlagStore(initialEnabled = false)
                     }
                 },
             )
         }
 
-        val counterStore = app.koin.get<SimpleMVI<TestState, TestIntent, TestEffect>>(
+        val counterStore = app.koin.get<MviStore<TestState, TestIntent, TestEffect>>(
             named("counterFactory"),
         )
-        val textStore = app.koin.get<SimpleMVI<OtherState, OtherIntent, OtherEffect>>(
+        val textStore = app.koin.get<MviStore<OtherState, OtherIntent, OtherEffect>>(
             named("textFactory"),
         )
-        val flagStore = app.koin.get<SimpleMVI<FlagState, FlagIntent, FlagEffect>>(
+        val flagStore = app.koin.get<MviStore<FlagState, FlagIntent, FlagEffect>>(
             named("flagFactory"),
         )
 
@@ -206,7 +206,7 @@ class SimpleMVIKoinTest {
 
     private class TestStore(
         initialValue: Int,
-    ) : SimpleMVI<TestState, TestIntent, TestEffect> by mvi(
+    ) : MviStore<TestState, TestIntent, TestEffect> by createStore(
         initialState = TestState(value = initialValue),
     ) {
         override fun onIntent(intent: TestIntent) {
@@ -229,7 +229,7 @@ class SimpleMVIKoinTest {
 
     private class OtherStore(
         initialText: String,
-    ) : SimpleMVI<OtherState, OtherIntent, OtherEffect> by mvi(
+    ) : MviStore<OtherState, OtherIntent, OtherEffect> by createStore(
         initialState = OtherState(text = initialText),
     ) {
         override fun onIntent(intent: OtherIntent) {
@@ -251,7 +251,7 @@ class SimpleMVIKoinTest {
 
     private class FlagStore(
         initialEnabled: Boolean,
-    ) : SimpleMVI<FlagState, FlagIntent, FlagEffect> by mvi(
+    ) : MviStore<FlagState, FlagIntent, FlagEffect> by createStore(
         initialState = FlagState(enabled = initialEnabled),
     ) {
         override fun onIntent(intent: FlagIntent) {

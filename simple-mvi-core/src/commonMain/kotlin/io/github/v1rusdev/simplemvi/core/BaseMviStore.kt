@@ -8,15 +8,21 @@ import kotlinx.coroutines.channels.BufferOverflow
  * Extend this class when a non-Compose store owns its intent handling. Implement [handleIntent]
  * and route every UI action through [onIntent].
  */
-abstract class SimpleMviStore<State : StateUi, Intent : IntentUi, Effect : EffectUi>(
-    initialState: State,
-    extraBufferCapacity: Int,
-    onBufferOverflow: BufferOverflow,
-) : SimpleMVI<State, Intent, Effect> by mvi(
-    initialState = initialState,
-    extraBufferCapacity = extraBufferCapacity,
-    onBufferOverflow = onBufferOverflow,
-) {
+abstract class BaseMviStore<State : StateUi, Intent : IntentUi, Effect : EffectUi> private constructor(
+    private val store: MviStore<State, Intent, Effect>,
+) : MviStore<State, Intent, Effect> by store {
+
+    constructor(
+        initialState: State,
+        extraBufferCapacity: Int,
+        onBufferOverflow: BufferOverflow,
+    ) : this(
+        store = createStore(
+            initialState = initialState,
+            extraBufferCapacity = extraBufferCapacity,
+            onBufferOverflow = onBufferOverflow,
+        ),
+    )
 
     /**
      * Creates a store with the default effect buffer.
@@ -30,7 +36,7 @@ abstract class SimpleMviStore<State : StateUi, Intent : IntentUi, Effect : Effec
     )
 
     final override fun onIntent(intent: Intent) {
-        SimpleMviConfig.notifyIntent(intent)
+        store.onIntent(intent)
         handleIntent(intent)
     }
 

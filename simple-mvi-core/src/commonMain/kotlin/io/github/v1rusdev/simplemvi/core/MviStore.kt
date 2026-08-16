@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.updateAndGet
  * Minimal MVI state container with observable state, one-time effects, and intent handling.
  *
  * Implement [onIntent] in your screen model and use [updateState] plus [emitEffect] or
- * [tryEmitEffect] to react to UI events. Prefer [SimpleMviStore] when you want a core store
+ * [tryEmitEffect] to react to UI events. Prefer [BaseMviStore] when you want a core store
  * that guarantees global intent observability before intent handling.
  *
  * Example:
@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.updateAndGet
  * }
  * ```
  */
-interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
+interface MviStore<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
     /**
      * Observable UI state for the screen.
      *
@@ -60,26 +60,30 @@ interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
     /**
      * Suspends until [effect] is emitted to [uiEffects].
      *
-     * Use this from coroutines when the caller can suspend.
+     * Use this from coroutines when the caller can suspend and the effect must not be dropped.
+     * With a suspending [BufferOverflow] strategy this waits for buffer space instead of
+     * discarding the effect, which is what [tryEmitEffect] would do.
      */
     suspend fun emitEffect(effect: Effect)
 
     /**
      * Tries to emit [effect] to [uiEffects] without suspension.
      *
-     * Returns `true` when the effect was accepted by the underlying shared flow.
+     * Returns `true` when the effect was accepted by the underlying shared flow. A `false` result
+     * means the effect was dropped and never reached the UI; global observability hooks are not
+     * notified in that case. Prefer [emitEffect] when losing the effect is not acceptable.
      */
     fun tryEmitEffect(effect: Effect): Boolean
 }
 
 /**
- * Creates a [SimpleMVI] store with a small default effect buffer.
+ * Creates an [MviStore] with a small default effect buffer.
  *
  * The default effect flow keeps one extra effect and drops the oldest item on overflow.
  *
  * Example:
  * ```
- * val store = mvi<ProfileState, ProfileIntent, ProfileEffect>(
+ * val store = createStore<ProfileState, ProfileIntent, ProfileEffect>(
  *     initialState = ProfileState.Loading,
  * )
  * ```
@@ -87,43 +91,45 @@ interface SimpleMVI<State : StateUi, Intent : IntentUi, Effect : EffectUi> {
  * You can also use it as a delegate inside your own class:
  * ```
  * class ProfileViewModel : ViewModel(),
- *     SimpleMVI<ProfileState, ProfileIntent, ProfileEffect> by mvi(
+ *     MviStore<ProfileState, ProfileIntent, ProfileEffect> by createStore(
  *         initialState = ProfileState.Loading,
  *     )
  * ```
  *
- * When a class overrides [SimpleMVI.onIntent] itself, that class owns intent handling and does
- * not automatically pass through [SimpleMviConfig] intent hooks.
+ * The returned store does not handle intents on its own: its [MviStore.onIntent] only notifies
+ * [MviConfig]. Override [MviStore.onIntent] in the delegating class, or extend [BaseMviStore],
+ * to add intent handling on top of that notification.
  */
-fun <State : StateUi, Intent : IntentUi, Effect : EffectUi> mvi(
+fun <State : StateUi, Intent : IntentUi, Effect : EffectUi> createStore(
     initialState: State,
-): SimpleMVI<State, Intent, Effect> = mvi(
+): MviStore<State, Intent, Effect> = createStore(
     initialState = initialState,
     extraBufferCapacity = 1,
     onBufferOverflow = BufferOverflow.DROP_OLDEST,
 )
 
 /**
- * Creates a [SimpleMVI] store with custom effect buffering.
+ * Creates an [MviStore] with custom effect buffering.
  *
  * Use this overload when one-time effects need a different [extraBufferCapacity] or
- * [onBufferOverflow] strategy.
+ * [onBufferOverflow] strategy than the default one extra slot with
+ * [BufferOverflow.DROP_OLDEST].
  */
-fun <State : StateUi, Intent : IntentUi, Effect : EffectUi> mvi(
+fun <State : StateUi, Intent : IntentUi, Effect : EffectUi> createStore(
     initialState: State,
     extraBufferCapacity: Int,
     onBufferOverflow: BufferOverflow,
-): SimpleMVI<State, Intent, Effect> = SimpleMVIDelegate(
+): MviStore<State, Intent, Effect> = MviStoreImpl(
     initialState = initialState,
     extraBufferCapacity = extraBufferCapacity,
     onBufferOverflow = onBufferOverflow,
 )
 
-private class SimpleMVIDelegate<State : StateUi, Intent : IntentUi, Effect : EffectUi>(
+private class MviStoreImpl<State : StateUi, Intent : IntentUi, Effect : EffectUi>(
     initialState: State,
     extraBufferCapacity: Int,
     onBufferOverflow: BufferOverflow,
-) : SimpleMVI<State, Intent, Effect> {
+) : MviStore<State, Intent, Effect> {
 
     private val mutableUiState = MutableStateFlow(initialState)
     override val uiState: StateFlow<State> = mutableUiState.asStateFlow()
@@ -137,7 +143,7 @@ private class SimpleMVIDelegate<State : StateUi, Intent : IntentUi, Effect : Eff
     override val uiEffects: Flow<Effect> = mutableUiEffects.asSharedFlow()
 
     override fun onIntent(intent: Intent) {
-        SimpleMviConfig.notifyIntent(intent)
+        MviConfig.notifyIntent(intent)
     }
 
     override fun updateState(transform: State.() -> State): State {
@@ -147,12 +153,15 @@ private class SimpleMVIDelegate<State : StateUi, Intent : IntentUi, Effect : Eff
     }
 
     override suspend fun emitEffect(effect: Effect) {
-        SimpleMviConfig.notifyEffect(effect)
         mutableUiEffects.emit(effect)
+        MviConfig.notifyEffect(effect)
     }
 
     override fun tryEmitEffect(effect: Effect): Boolean {
-        SimpleMviConfig.notifyEffect(effect)
-        return mutableUiEffects.tryEmit(effect)
+        val accepted = mutableUiEffects.tryEmit(effect)
+        if (accepted) {
+            MviConfig.notifyEffect(effect)
+        }
+        return accepted
     }
 }

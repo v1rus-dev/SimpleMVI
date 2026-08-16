@@ -35,7 +35,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":simple-mvi-compose-android"))
+    implementation(project(":simple-mvi-android"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

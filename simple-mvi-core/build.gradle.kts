@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.v1rus-dev"
-version = "0.3.0"
+version = "0.4.0"
 
 kotlin {
     androidLibrary {
@@ -17,6 +17,7 @@ kotlin {
         minSdk = libs.versions.android.minSdk.get().toInt()
 
         withJava()
+        withHostTestBuilder {}.configure {}
 
         compilations.configureEach {
             compileTaskProvider.configure {
